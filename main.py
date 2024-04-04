@@ -2,19 +2,7 @@ import mysql.connector
 
 connection = mysql.connector.connect(user = "root", database = "example", password = "FireCarpet657@")
 cursor = connection.cursor()
-testQuery = ("SELECT * FROM online_banking")
-cursor.execute(testQuery)
 
-for item in cursor:
-    print(item)
-
-cursor.close()
-connection.close()
-
-
-account_list = {
-    "personal":5738299
-}
 
 def introduction():
     print("Quick and Easy Bank")
@@ -37,17 +25,25 @@ def introduction():
             print("Please type yes or no")
 
 def select_account():
+    account_list = []
     y = 0
-    for account in account_list:
-        y += 1
-        print(f"{y}: {account}")
+    cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
+    accounts = cursor.fetchall()
+    for account in accounts:
+        print(f"{account[0]}: {account[1]}")
+        account_list.append(account[1])
+
     z = True
     while (z):
         account_name = input("Type the name of the account you would like to use: ")
 
         if account_name in account_list:
-            account_password = int(input("Ok, what is the password for this account? "))
-            if account_password == account_list.get(account_name):
+            account_password = input("Ok, what is the password for this account? ")
+            cursor.execute("SELECT password FROM online_banking")
+            password = cursor.fetchone()
+            password = ''.join(password)
+
+            if account_password == password:
                 print("yay")
                 z = False
 
@@ -57,9 +53,11 @@ def select_account():
         else:
             print("Please select from the accounts listed above.")
 
-    
-"""
+def make_account():
+    print("")
+
+
 if __name__ == "__main__":
     introduction()
-
-"""
+    cursor.close()
+    connection.close()
