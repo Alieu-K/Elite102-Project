@@ -4,9 +4,6 @@ connection = mysql.connector.connect(user = "root", database = "example", passwo
 cursor = connection.cursor()
 testQuery = 'SELECT * FROM online_banking'
 
-#x = ("INSERT INTO online_banking (idOnline_Banking, account_name, password, account_email, total_amount, latest_transaction) VALUE (2, 'Personal', 'BestPassword123@','bestEmail@email.com', 100, 'N/A')")
-# cursor.execute(x)
-# connection.commit()
 cursor.reset
 
 cursor.execute(testQuery)
@@ -14,10 +11,11 @@ cursor.execute(testQuery)
 
 for item in cursor:
     print(item)
-    
+ 
 
 
-special_charcters = "(''!@#$%^&*()_-=+[]{\|;:/.,<>~`?}{)"
+
+special_charcters = "(''!@#$%^&*()_=+[]{\|;:/.,<>~`?}{)"
 
 def introduction():
     print("\nQuick and Easy Bank")
@@ -58,8 +56,10 @@ def select_account():
             account_name = input("Type the name of the account you would like to use: ")
         
             if account_name in account_list:
+
                 account_password = input("Ok, what is the password for this account? ")
-                cursor.execute("SELECT password FROM online_banking")
+                cursor.execute(f"SELECT password FROM online_banking WHERE account_name = '{account_name}'")
+
                 password = cursor.fetchone()
                 password = ''.join(password)
 
@@ -84,15 +84,22 @@ def make_account():
             account_password = input("Ok, now what do you want your password to be? ")
 
             if password_char_count(account_password):
-                starting_total = 0.0
-                
-                account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '@gmail.com', { starting_total}, 'N/A')")
-                breakpoint()
-                cursor.execute(account_adding)
-                connection.commit()
-                
-                print("okay")
-                password_creation_check = False
+                email_creation_check = True
+                while(email_creation_check):
+                    account_email = input("Ok, what email do you want to use for this account? We only accept gmails and hotmails however. ")
+
+                    if email_char_check(account_email):
+                        starting_total = 0.0
+                        account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
+                        cursor.execute(account_adding)
+                        connection.commit()
+                        
+                        print("okay")
+                        email_creation_check = False
+                        password_creation_check = False
+                    else:
+                        print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
+
             else:
                 print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
         
@@ -100,7 +107,10 @@ def make_account():
         print("Please don't include numbers or special charcters in the name.")
         make_account()
 
+def home_screen():
+    pass
 
+# Background Checks
 def name_has_number(input_string):
     return any(char.isdigit() for char in input_string)
 def name_has_special_char(input_string):
@@ -134,9 +144,19 @@ def password_char_count(input_string):
         return True
     else:
         return False
-        
+def email_char_check(input_string):   
+    atCount = 0      
+    if '@hotmail.com' in input_string or '@gmail.com' in input_string:
+        if input_string[-1] == "m" and input_string[-2] == "o" and input_string[-3] == 'c':
+            atCount += 1
     
-            
+    if atCount == 1: 
+        return True
+    else: 
+        return False
+
+current_user = ''
+
 
 if __name__ == "__main__":
     introduction()
