@@ -2,6 +2,7 @@ import mysql.connector
 
 connection = mysql.connector.connect(user = "root", database = "example", password = "FireCarpet657@")
 cursor = connection.cursor()
+""""
 testQuery = 'SELECT * FROM online_banking'
 
 cursor.reset
@@ -10,8 +11,7 @@ cursor.execute(testQuery)
 
 for item in cursor:
     print(item)
- 
-
+"""
 user_logged_in = ''
 special_charcters = "(''!@#$%^&*()_=+[]{\|;:/.,<>~`?}{)"
 
@@ -112,58 +112,151 @@ def make_account(logged_user):
     return logged_user
 
 def home_screen(user_logged_in):
-    sorting_number = 1
-    print("---------------------------------------------")
-    action_list = ['Check Balance', 'Deposit', 'Withdraw', 'Create Account', 'Delete Account', 'Modify Account']
-    for action in action_list:
-        print(f"{sorting_number}: {action}")
-        print("-------------------------")
-        sorting_number += 1
+    function_loop = True
+    while(function_loop):
+        sorting_number = 1
+        print("---------------------------------------------")
+        print(f"Account: {user_logged_in}\n")
 
-    actions = int(input(f"\nOk {name}, type in the number that corresponds to the action you would like to do today. "))
-    if actions == 1:
-        pass
+        action_list = ['Check Balance', 'Deposit', 'Withdraw', 'Create Account', 'Delete Account', 'Modify Account', 'Log out']
+        for action in action_list:
+            print(f"{sorting_number}: {action}")
+            print("-------------------------")
+            sorting_number += 1
 
-    elif actions == 2:
-        deposit(user_logged_in)
+        try:
+            actions = int(input(f"\nOk {name}, type in the number that corresponds to the action you would like to do today. "))
+        except ValueError:
+            actions = 0
 
-    elif actions == 3:
-        pass
+        if actions == 1:
+            print("---------------------------------------------")
+            cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{user_logged_in}'")
+            account_info = cursor.fetchone()
+            print(f"You have {account_info[4]} in your account now.")
+            cursor.reset()
 
-    elif actions == 4:
-        pass
+        elif actions == 2:
+            deposit(user_logged_in)
 
-    elif actions == 5:
-        pass
+        elif actions == 3:
+            withdraw(user_logged_in)
 
-    elif actions == 6:
-        pass
+        elif actions == 4:
+            user_logged_in = make_account(user_logged_in)
 
-    else:
-        print("Please type the number that corresponds to the action you would like to do.")
+        elif actions == 5:
+            delete_account(user_logged_in)
+
+        elif actions == 6:
+            pass
+
+        elif actions == 7:
+            print("Logged out")
+            function_loop = False
+        else:
+            print("Please type the number that corresponds to the action you would like to do.")
 
 def deposit(username):
+
     print("---------------------------------------------")
-    
-    try:
-        deposit_amount = float(input("How much would you like to deposit? "))
+    try_deposit = True
+    while(try_deposit):
+        try:
+            deposit_amount = float(input("How much would you like to deposit? "))
 
-        if deposit_amount >= 1:
-            cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
-            current_amount = cursor.fetchone()
-            new_amount = current_amount[0] + deposit_amount
-            cursor.execute(f"UPDATE online_banking SET total_amount = {new_amount} WHERE account_name = '{username}'")
+            if deposit_amount >= 1:
+                cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
+                current_amount = cursor.fetchone()
+                new_amount = current_amount[0] + deposit_amount
+                cursor.execute(f"UPDATE online_banking SET total_amount = {new_amount} WHERE account_name = '{username}'")
 
-            cursor.reset()
-            cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{username}'")
-            account_info = cursor.fetchone()
-            print(account_info)
+                cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{username}'")
+                account_info = cursor.fetchone()
+                print(f"You have {account_info[4]} in your account now.")
+                connection.commit()
+                cursor.reset()
+                try_deposit = False
+            else:
+                print("Please make sure the amount you want to deposit is greater than 1.")
+
+
+
+        except ValueError:
+            print("Please type in a numerical amount. Be sure to include .0 at the of whole numbers. ")
+
+def withdraw(username):
+    print("---------------------------------------------")
+    try_withdraw = True
+    while(try_withdraw):
+        try:
+            withdraw_amount = float(input("How much would you like to withdraw? "))
+
+            if withdraw_amount >= 1:
+                cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
+                current_amount = cursor.fetchone()
+                new_amount = current_amount[0] - withdraw_amount
+
+                if new_amount >= 1:
+                    cursor.execute(f"UPDATE online_banking SET total_amount = {new_amount} WHERE account_name = '{username}'")
+                    cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{username}'")
+                    account_info = cursor.fetchone()
+                    print(f"You have {account_info[4]} in your account now.")
+                    connection.commit()
+                    cursor.reset()
+                    try_withdraw = False
+                else:
+                    print("The total balance in your account has to be greater or equal to 1, please try withdrawing a smaller amount.")
+            else:
+                print("Please make sure the amount you want to withdraw is greater than 1.")
+
+
+
+        except ValueError:
+            print("Please type in a numerical amount. Be sure to include .00 at the of whole numbers. ")
+
+def delete_account(logged_in_user):
+    account_list = [] 
+    try_delete = True
+    while(try_delete):
+        account_list.clear()   
+        testQuery = 'SELECT * FROM online_banking'
+        cursor.reset
+        cursor.execute(testQuery)
+
+        for item in cursor:
+            print("---------------------------------------------")
+            print(f"Account Name: {item[1]}")
+            print(f"Amount: {item[4]}")
+            print(f"Latest Transaction: {item[5]}")
+            account_list.append(item[1])
+
+        print("---------------------------------------------")
+        selected_account = input("What's the name of the account you would like to delete? ")
+        
+        if selected_account == logged_in_user:
+            print("Please switch users before deleting an account.")
+            try_delete = False
+            account_list.clear()
+        
+        elif selected_account in account_list:
+            account_delete = f'DELETE FROM online_banking WHERE account_name = "{selected_account}"'
+            cursor.execute(account_delete)
             connection.commit()
+            print(f"The account {selected_account} has been succesfully deleted.")
+            try_delete = False
+            account_list.clear()
 
-
-    except ValueError:
-        print("Please type in a numerical amount. Be sure to include .0 at the of whole numbers. ")
+        elif selected_account == 'home' or selected_account == 'Home':
+            try_delete = False
     
+        else:
+            print("Please select an account from the list or type home to go back to the home screen.")
+
+
+        
+
+
 
 
 # Background Checks
@@ -218,6 +311,8 @@ if __name__ == "__main__":
     print("---------------------------------------------")
     name = input("Hello welcome to Quick and Easy Bank, what is your name? ")
     user_logged_in = introduction(user_logged_in)
+
     home_screen(user_logged_in)
+
     cursor.close()
     connection.close()
