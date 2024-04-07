@@ -16,7 +16,7 @@ user_logged_in = ''
 special_charcters = "(''!@#$%^&*()_=+[]{\|;:/.,<>~`?}{)"
 
 # Main Functions
-def introduction(logged_user):
+def login_page(logged_user):
     x = True
     while (x):
         account_status = input(f"Hello {name}, do you have an account already? ")
@@ -34,82 +34,6 @@ def introduction(logged_user):
             return logged_user
         else:
             print("Please type yes or no")
-        
-def select_account(logged_user):
-    account_list = []
-    y = 0
-    cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
-    accounts = cursor.fetchall()
-    for account in accounts:
-        print(f"{account[0]}: {account[1]}")
-        account_list.append(account[1])
-
-    z = True
-    password_tries = 3
-    while (z):
-        if password_tries == 0:
-            print("You have run out of password tries, you will be kicked out now.")
-            z = False
-        if(z):
-            account_name = input("Type the name of the account you would like to use: ")
-        
-            if account_name in account_list:
-
-                account_password = input("Ok, what is the password for this account? ")
-                cursor.execute(f"SELECT password FROM online_banking WHERE account_name = '{account_name}'")
-                password = cursor.fetchone()
-                cursor.reset()
-                password = ''.join(password)
-
-                if account_password == password:
-                    print("yay")
-                    logged_user = account_name
-                    z = False
-                    return logged_user
-
-                else:
-                    password_tries -= 1
-                    print(f"Please make sure you typed in your password correctly, you have {password_tries} left.")
-
-            else:
-                print("Please select from the accounts listed above.")
-
-def make_account(logged_user):
-    username_creation_check = True
-
-    while(username_creation_check):
-        account_name = input("What do you want the name of your account to be? No numbers or special charcters. ")
-        if name_has_number(account_name) == False and name_has_special_char(account_name) == True:
-        
-            password_creation_check = True
-            while(password_creation_check):
-                account_password = input("Ok, now what do you want your password to be? ")
-
-                if password_char_count(account_password):
-                    email_creation_check = True
-                    while(email_creation_check):
-                        account_email = input("Ok, what email do you want to use for this account? However, we only accept gmails and hotmails. ")
-
-                        if email_char_check(account_email):
-                            starting_total = 0.0
-                            account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
-                            cursor.execute(account_adding)
-                            connection.commit()
-                            print("okay")
-                            logged_user = account_name
-                            email_creation_check = False
-                            password_creation_check = False
-                            username_creation_check = False
-                        else:
-                            print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
-
-                else:
-                    print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
-            
-        else:
-            print("Please don't include numbers or special charcters in the name.")
-
-    return logged_user
 
 def home_screen(user_logged_in):
     function_loop = True
@@ -149,7 +73,7 @@ def home_screen(user_logged_in):
             delete_account(user_logged_in)
 
         elif actions == 6:
-            pass
+            user_logged_in = modify_account(user_logged_in)
 
         elif actions == 7:
             print("Logged out")
@@ -215,7 +139,7 @@ def withdraw(username):
         except ValueError:
             print("Please type in a numerical amount. Be sure to include .00 at the of whole numbers. ")
 
-def delete_account(logged_in_user):
+def delete_account(logged_user):
     account_list = [] 
     try_delete = True
     while(try_delete):
@@ -234,7 +158,7 @@ def delete_account(logged_in_user):
         print("---------------------------------------------")
         selected_account = input("What's the name of the account you would like to delete? ")
         
-        if selected_account == logged_in_user:
+        if selected_account == logged_user:
             print("Please switch users before deleting an account.")
             try_delete = False
             account_list.clear()
@@ -253,9 +177,180 @@ def delete_account(logged_in_user):
         else:
             print("Please select an account from the list or type home to go back to the home screen.")
 
+def select_account(logged_user):
+    account_list = []
+    y = 0
+    cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
+    accounts = cursor.fetchall()
+    print("---------------------------------------------")
+    for account in accounts:
+        print(f"{account[0]}: {account[1]}")
+        account_list.append(account[1])
+    print("---------------------------------------------")
 
+    z = True
+    password_tries = 3
+    while (z):
+        if password_tries == 0:
+            print("You have run out of password tries, you will be kicked out now.")
+            z = False
+        if(z):
+            account_name = input("Type the name of the account you would like to use: ")
         
+            if account_name in account_list:
 
+                account_password = input("Ok, what is the password for this account? ")
+                cursor.execute(f"SELECT password FROM online_banking WHERE account_name = '{account_name}'")
+                password = cursor.fetchone()
+                cursor.reset()
+                password = ''.join(password)
+
+                if account_password == password:
+                    logged_user = account_name
+                    z = False
+                    return logged_user
+
+                else:
+                    password_tries -= 1
+                    print(f"Please make sure you typed in your password correctly, you have {password_tries} left.")
+
+            else:
+                print("Please select from the accounts listed above.")
+
+def make_account(logged_user):
+    username_creation_check = True
+
+    while(username_creation_check):
+        account_name = input("What do you want the name of your account to be? No numbers or special charcters. ")
+        if name_has_number(account_name) == False and name_has_special_char(account_name) == True:
+        
+            password_creation_check = True
+            while(password_creation_check):
+                account_password = input("Ok, now what do you want your password to be? ")
+
+                if password_char_count(account_password):
+                    email_creation_check = True
+                    while(email_creation_check):
+                        account_email = input("Ok, what email do you want to use for this account? However, we only accept gmails and hotmails. ")
+
+                        if email_char_check(account_email):
+                            starting_total = 0.0
+                            account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
+                            cursor.execute(account_adding)
+                            connection.commit()
+                            print("okay")
+                            logged_user = account_name
+                            email_creation_check = False
+                            password_creation_check = False
+                            username_creation_check = False
+                        else:
+                            print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
+
+                else:
+                    print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
+            
+        else:
+            print("Please don't include numbers or special charcters in the name.")
+
+    return logged_user       
+
+def modify_account(logged_user):
+    account_details = []
+
+    print_account = f"SELECT * FROM online_banking WHERE account_name = '{logged_user}'"
+    cursor.execute(print_account)
+    for item in cursor:
+        print("---------------------------------------------")
+        print(f"Name: {item[1]}")
+        print(f"Password: {item[2]}")
+        print(f"Email: {item[3]}")
+        print("---------------------------------------------")
+        account_details.append((item[1], item[2], item[3]))
+    
+    modification = input("Type in the field you would like to modify about this account. ")
+    get_modify = True
+
+    while(get_modify):
+        if modification == "name" or modification == "Name":
+            get_name = True
+            while(get_name):
+                string_count = 0
+                name_modify = input("What would you like for the name of this account to be? ")
+                for char in name_modify:
+                    string_count += 1
+                if string_count >= 3 and string_count <= 25 and name_has_number(name_modify) == False and name_has_special_char(name_modify):
+
+                    modify = f"UPDATE online_banking SET account_name = '{name_modify}' WHERE account_name = '{logged_user}'"
+                    cursor.execute(modify)
+                    connection.commit()
+                    cursor.reset
+
+                    cursor.execute(print_account)
+                    for item in cursor:
+                        print("---------------------------------------------")
+                        print(f"Name: {item[1]}")
+                        print(f"Password: {item[2]}")
+                        print(f"Email: {item[3]}")
+                    logged_user = name_modify
+                    get_name = False
+                    get_modify = False
+                    return logged_user
+
+                else:
+                    print("Please type a name that is between 3-25 charcters long. Spaces count and no numbers.")
+            
+        elif modification == "password" or modification == "Password":
+            get_password = True
+            
+            while(get_password):
+                password_modify = input("What would you like for the password of this account to be? ")
+                
+                if password_char_count(password_modify):
+                    modify = f"UPDATE online_banking SET password = '{password_modify}' WHERE account_name = '{logged_user}'"
+                    cursor.execute(modify)
+                    connection.commit()
+                    cursor.reset
+
+                    cursor.execute(print_account)
+                    for item in cursor:
+                        print("---------------------------------------------")
+                        print(f"Name: {item[1]}")
+                        print(f"Password: {item[2]}")
+                        print(f"Email: {item[3]}")
+                    get_password = False
+                    get_modify = False
+                    return logged_user
+
+                else:
+                    print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
+            
+        elif modification == "email" or modification == "email":
+            get_email = True
+            
+            while(get_email):
+                email_modify = input("What would you like for the email of this account to be? ")
+                
+                if email_char_check(email_modify):
+                    modify = f"UPDATE online_banking SET account_email = '{email_modify}' WHERE account_name = '{logged_user}'"
+                    cursor.execute(modify)
+                    connection.commit()
+                    cursor.reset
+
+                    cursor.execute(print_account)
+                    for item in cursor:
+                        print("---------------------------------------------")
+                        print(f"Name: {item[1]}")
+                        print(f"Password: {item[2]}")
+                        print(f"Email: {item[3]}")
+                    get_email = False
+                    get_modify = False
+                    return logged_user
+
+                else:
+                    print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")   
+
+        else:
+            print("Please type in email, name, or password to modify one of them.")
 
 
 
@@ -310,7 +405,7 @@ if __name__ == "__main__":
     print("\nQuick and Easy Bank")
     print("---------------------------------------------")
     name = input("Hello welcome to Quick and Easy Bank, what is your name? ")
-    user_logged_in = introduction(user_logged_in)
+    user_logged_in = login_page(user_logged_in)
 
     home_screen(user_logged_in)
 
