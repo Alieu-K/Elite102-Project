@@ -42,7 +42,7 @@ def home_screen(user_logged_in):
         print("---------------------------------------------")
         print(f"Account: {user_logged_in}\n")
 
-        action_list = ['Check Balance', 'Deposit', 'Withdraw', 'Create Account', 'Delete Account', 'Modify Account', 'Log out']
+        action_list = ['Check Balance', 'Deposit', 'Withdraw', 'Create Account', 'Delete Account', 'Modify Account', 'Switch Accounts', 'Wire Transfer', 'Log out']
         for action in action_list:
             print(f"{sorting_number}: {action}")
             print("-------------------------")
@@ -58,6 +58,11 @@ def home_screen(user_logged_in):
             cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{user_logged_in}'")
             account_info = cursor.fetchone()
             print(f"You have {account_info[4]} in your account now.")
+            if account_info == 'N/A':
+                print("No activity as of right now.")
+            else:
+                print(f"Your latest transaction was a {account_info[5]}")
+                
             cursor.reset()
 
         elif actions == 2:
@@ -76,24 +81,33 @@ def home_screen(user_logged_in):
             user_logged_in = modify_account(user_logged_in)
 
         elif actions == 7:
+            user_logged_in = switch_accounts(user_logged_in)
+
+        elif actions == 8:
+            wire_transfer(user_logged_in)
+
+        elif actions == 9:
             print("Logged out")
             function_loop = False
+
         else:
             print("Please type the number that corresponds to the action you would like to do.")
 
 def deposit(username):
 
     print("---------------------------------------------")
+    cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
+    current_amount = cursor.fetchone()
+    print(f"Balance: {current_amount[0]}")
     try_deposit = True
     while(try_deposit):
         try:
             deposit_amount = float(input("How much would you like to deposit? "))
 
             if deposit_amount >= 1:
-                cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
-                current_amount = cursor.fetchone()
                 new_amount = current_amount[0] + deposit_amount
                 cursor.execute(f"UPDATE online_banking SET total_amount = {new_amount} WHERE account_name = '{username}'")
+                cursor.execute(f"UPDATE online_banking SET latest_transaction = 'deposit of {deposit_amount} to the account' WHERE account_name = '{username}'")
 
                 cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{username}'")
                 account_info = cursor.fetchone()
@@ -111,6 +125,9 @@ def deposit(username):
 
 def withdraw(username):
     print("---------------------------------------------")
+    cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{username}'")
+    current_amount = cursor.fetchone()
+    print(f"Balance: {current_amount[0]}")
     try_withdraw = True
     while(try_withdraw):
         try:
@@ -123,6 +140,8 @@ def withdraw(username):
 
                 if new_amount >= 1:
                     cursor.execute(f"UPDATE online_banking SET total_amount = {new_amount} WHERE account_name = '{username}'")
+                    cursor.execute(f"UPDATE online_banking SET latest_transaction = 'withdrawl of {withdraw_amount} to the account' WHERE account_name = '{username}'")
+
                     cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{username}'")
                     account_info = cursor.fetchone()
                     print(f"You have {account_info[4]} in your account now.")
@@ -179,7 +198,6 @@ def delete_account(logged_user):
 
 def select_account(logged_user):
     account_list = []
-    y = 0
     cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
     accounts = cursor.fetchall()
     print("---------------------------------------------")
@@ -382,7 +400,93 @@ def modify_account(logged_user):
         else:
             print("Please type in email, name, or password to modify one of them.")
 
+def switch_accounts(logged_user):
+    account_list = []
+    cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
+    accounts = cursor.fetchall()
+    print("---------------------------------------------")
+    for account in accounts:
+        print(f"{account[0]}: {account[1]}")
+        account_list.append(account[1])
+    print("---------------------------------------------")
+    get_switch = True
 
+    while(get_switch):
+        account_switch = input("What account would you like to switch to? ")
+    
+        if account_switch in account_list:
+            logged_user = account_switch
+            account_list.clear()
+            get_switch = False
+            return logged_user
+
+        
+        elif account_switch == 'cancel' or account_switch == 'Cancel':
+            get_switch = False
+            account_list.clear()
+            return logged_user
+
+        
+        else:
+            print("Please select an account in the list above or type cancel to exit out.")
+
+def wire_transfer(logged_user):
+    account_list = []
+    cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
+    accounts = cursor.fetchall()
+    print("---------------------------------------------")
+    for account in accounts:
+        print(f"{account[0]}: {account[1]}")
+        account_list.append(account[1])
+    print("---------------------------------------------")
+
+    action = input("What would you like to do, deposit or withdraw money? ")
+
+    if action == "deposit" or action == "Deposit":
+        account_select = input("What account do you want to deposit into? ")
+
+        if account_select in account_list:
+            cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{account_select}'")
+            deposit = cursor.fetchone()
+            deposit = deposit[0]
+
+            cursor.reset()
+
+            cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{logged_user}'")
+            deposit_from = cursor.fetchone()
+            deposit_from = deposit_from[0]
+
+            try:
+                deposit_amount = int(input("How much do you want to deposit into this account? "))
+                if (deposit_from - deposit_amount) >= 1:
+
+                    transfer_amount = deposit_from - deposit_amount
+                    deposit_from = deposit_from - deposit_amount
+
+                    deposit = deposit + transfer_amount
+                    breakpoint()
+                    cursor.execute(f"UPDATE online_banking SET total_amount = {deposit_from} WHERE account_name = '{logged_user}'")
+                    cursor.execute(f"UPDATE online_banking SET total_amount = {deposit} WHERE account_name = '{account_select}'")
+
+                    connection.commit()
+
+
+
+
+
+
+            except ValueError:
+                pass
+
+
+        else:
+            print("Please type in an account name.")
+
+
+    elif action == "withdraw" or action == "Withhdraw":
+        pass
+    else:
+        print("Please type in withdraw or deposit in the text box")
 
 # Background Checks
 def name_has_number(input_string):
@@ -429,7 +533,7 @@ def email_char_check(input_string):
     else: 
         return False
 
-# Test Password BestPassword123@
+# Test Password BestPassword1234@
 
 if __name__ == "__main__":
     print("\nQuick and Easy Bank")
