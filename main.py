@@ -221,28 +221,58 @@ def make_account(logged_user):
     username_creation_check = True
 
     while(username_creation_check):
+        cursor.reset
+        current_usernames = []
+        taken_names = ("SELECT account_name FROM online_banking")
+        cursor.execute(taken_names)
+        for name in cursor:
+            capitalize = name[0].upper()
+            lowercase = name[0].lower()
+            current_usernames.append(name[0])
+            current_usernames.append(capitalize)
+            current_usernames.append(lowercase)
+
         account_name = input("What do you want the name of your account to be? No numbers or special charcters. ")
-        if name_has_number(account_name) == False and name_has_special_char(account_name) == True:
-        
+        if name_has_number(account_name) == False and name_has_special_char(account_name) == True and account_name not in current_usernames:
             password_creation_check = True
+
             while(password_creation_check):
+                cursor.reset
+                current_passwords = []
+                taken_passwords = ("SELECT password FROM online_banking")
+                cursor.execute(taken_passwords)
+                for password in cursor:
+                    current_passwords.append(password[0])
+
                 account_password = input("Ok, now what do you want your password to be? ")
 
-                if password_char_count(account_password):
+                if password_char_count(account_password) and account_password not in current_passwords:
                     email_creation_check = True
                     while(email_creation_check):
+                        cursor.reset
+                        current_emails = []
+                        taken_emails = ("SELECT account_email FROM online_banking")
+                        cursor.execute(taken_emails)
+                        for email in cursor:
+                            current_emails.append(email[0])
+
                         account_email = input("Ok, what email do you want to use for this account? However, we only accept gmails and hotmails. ")
 
-                        if email_char_check(account_email):
+                        if email_char_check(account_email) and account_email not in current_emails:
                             starting_total = 0.0
                             account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
                             cursor.execute(account_adding)
                             connection.commit()
                             print("okay")
                             logged_user = account_name
+
                             email_creation_check = False
                             password_creation_check = False
                             username_creation_check = False
+
+                            current_usernames.clear()
+                            current_passwords.clear()
+                            current_passwords.clear()
                         else:
                             print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
 
@@ -250,7 +280,7 @@ def make_account(logged_user):
                     print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
             
         else:
-            print("Please don't include numbers or special charcters in the name.")
+            print("Please don't include numbers or special charcters in the name. There may also be an account with this name already.")
 
     return logged_user       
 
