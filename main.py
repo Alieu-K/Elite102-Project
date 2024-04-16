@@ -105,7 +105,7 @@ class main_loop(tk.Tk):
         user_logged_in = ''
 
 
-        ttk.Label(frame0, text="Hello welcome to Quick and Easy Bank", font=("Arial", 40)).grid(sticky= 'n')
+        ttk.Label(frame0, text="Quick and Easy Bank", font=("Arial", 40)).grid(sticky= 'n')
         ttk.Label(frame0, text="---------------------------------------------", font=("Arial", 40)).grid()
 
         # Main Functions
@@ -113,7 +113,7 @@ class main_loop(tk.Tk):
             user_input = tk.StringVar(self)
 
             login_button = ttk.Button(frame1, text="Login", command = select_account, width=75).grid(sticky= 'n')
-            sign_up_button = ttk.Button(frame1, text="Sign Up", command= make_account, width=75).grid(row = 1)
+            sign_up_button = ttk.Button(frame1, text="Sign Up", command= lambda: make_account(user_logged_in), width=75).grid(row = 1)
 
         def log_out():
             self.destroy()
@@ -134,7 +134,7 @@ class main_loop(tk.Tk):
             Check_balance = ttk.Button(frame0, text="Check Balance", command= lambda: check_balance(username), width=25).grid(row = 2, sticky='w')
             Deposit = ttk.Button(frame0, text="Deposit", command= lambda: deposit(), width=25).grid(row = 3, sticky='w')
             Withdraw = ttk.Button(frame0, text="Withdraw", command= lambda: withdraw(), width=25).grid(row = 4, sticky='w')
-            Create_Account = ttk.Button(frame0, text="Create Account", command= lambda: make_account(), width=25).grid(row = 5, sticky='w')
+            Create_Account = ttk.Button(frame0, text="Create Account", command= lambda: make_account(username), width=25).grid(row = 5, sticky='w')
             Delete_Account = ttk.Button(frame0, text="Delete Account", command= lambda: delete_account(), width=25).grid(row = 2, sticky='e')
             Modify_Account = ttk.Button(frame0, text="Modify Account", command= lambda: modify_account(), width=25).grid(row = 3, sticky='e')
             Switch_Account = ttk.Button(frame0, text="Switch Account", command= lambda: switch_accounts(), width=25).grid(row = 4, sticky='e')
@@ -297,12 +297,15 @@ class main_loop(tk.Tk):
                     clearFrame(frame3)
                     ttk.Label(frame3, text = f"Please make sure your username or password is correct.", font=('Arial', 15)).grid(sticky='n')
 
-        def make_account():
+        def make_account(logged_user):
+                clearFrame(frame0)
+                clearFrame(frame1)
+                clearFrame(frame3)
+
                 name_input = tk.StringVar(self)
                 password_input = tk.StringVar(self)
                 email_input = tk.StringVar(self)
 
-                clearFrame(frame1)
 
                 frame2 = ttk.Frame(self)
                 frame2.grid(column=2, row=1)
@@ -312,7 +315,11 @@ class main_loop(tk.Tk):
                 current_usernames = []
                 current_passwords = []
                 current_emails = []
-                
+
+                ttk.Label(frame0, text="Create a New Account", font=("Arial", 40)).grid(sticky= 'n')
+                ttk.Label(frame0, text="---------------------------------------------", font=("Arial", 40)).grid()
+
+
                 def name_check(account_name):
                     clearFrame(frame2)
                     if name_has_number(account_name) == False and name_has_special_char(account_name) == True and account_name not in current_usernames:
@@ -323,13 +330,13 @@ class main_loop(tk.Tk):
                             current_passwords.append(password[0])
 
                         ttk.Label(frame2, text = "What do you want the password of your account to be? Make sure it's 8-25 characters long with at least a capital letter, number, and special charcter without any spaces.", font=('Arial', 15)).grid(sticky='n')
-                        ttk.Entry(frame2, textvariable=password_input).grid(sticky='s')
+                        ttk.Entry(frame2, textvariable=password_input, width=25).grid(sticky='s')
                         ttk.Button(frame2, text="Confirm", command = lambda: password_check(password_input.get()), width=10).grid()
 
                     else:
                         clearFrame(frame2)
                         ttk.Label(frame2, text = "Please type in a name that doesn't have a special charcter or number in it.", font=('Arial', 15)).grid(sticky='n')
-                        ttk.Entry(frame2, textvariable=name_input).grid(sticky='s')
+                        ttk.Entry(frame2, textvariable=name_input, width = 25).grid(sticky='s')
                         ttk.Button(frame2, text="Confirm", command = lambda: name_check(name_input.get()), width=10).grid()
      
                 def password_check(account_password):
@@ -342,13 +349,13 @@ class main_loop(tk.Tk):
                             current_emails.append(email[0])
 
                         ttk.Label(frame2, text = "What do you want the email of your account to be? We only accept hotmails and gmails.", font=('Arial', 15)).grid(sticky='n')
-                        ttk.Entry(frame2, textvariable=email_input).grid(sticky='s')
+                        ttk.Entry(frame2, textvariable=email_input, width=25).grid(sticky='s')
                         ttk.Button(frame2, text="Confirm", command = lambda: email_check(email_input.get()), width=10).grid()
                     
                     else:
                         clearFrame(frame2)
                         ttk.Label(frame2, text = "Please type in a Password. Make sure it has a capital letter, number, and a special charcter in it.", font=('Arial', 15)).grid(sticky='n')
-                        ttk.Entry(frame2, textvariable=password_input).grid(sticky='s')
+                        ttk.Entry(frame2, textvariable=password_input, width=25).grid(sticky='s')
                         ttk.Button(frame2, text="Confirm", command = lambda: password_check(password_input.get()), width=10).grid()  
 
                 def email_check(account_email):
@@ -368,12 +375,12 @@ class main_loop(tk.Tk):
                         current_usernames.clear()
                         current_passwords.clear()
                         current_emails.clear()
-                        home_screen()
+                        home_screen(logged_user)
 
                     else:
                         clearFrame(frame2)
-                        ttk.Label(frame2, text = "Please make sure the email you're typing in has hotmail.com or gmail.com", font=('Arial', 15)).grid(sticky='n')
-                        ttk.Entry(frame2, textvariable=email_input).grid(sticky='s')
+                        ttk.Label(frame2, text = "This email is already in use or it is not a hotmail.com or gmail.com email.", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=email_input, width=25).grid(sticky='s')
                         ttk.Button(frame2, text="Confirm", command = lambda: email_check(email_input.get()), width=10).grid() 
 
 
@@ -387,7 +394,7 @@ class main_loop(tk.Tk):
                     current_usernames.append(lowercase)
 
                 ttk.Label(frame2, text = "What do you want the name of your account to be? No numbers or special charcters.", font=('Arial', 15)).grid(sticky='n')
-                ttk.Entry(frame2, textvariable=name_input).grid(sticky='s')
+                ttk.Entry(frame2, textvariable=name_input, width = 25).grid(sticky='s')
                 ttk.Button(frame2, text="Confirm", command = lambda: name_check(name_input.get()), width=10).grid()
 
         def modify_account(logged_user):

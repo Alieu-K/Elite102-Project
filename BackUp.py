@@ -296,10 +296,10 @@ def make_account(logged_user):
                             current_passwords.clear()
                             current_passwords.clear()
                         else:
-                            print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
+                            print("This email is in use with another account or your email doesn't have a @gmail.com or a hotmail.com in it.")  
 
                 else:
-                    print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
+                    print("Please type a different password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
             
         else:
             print("Please don't include numbers or special charcters in the name. There may also be an account with this name already.")
