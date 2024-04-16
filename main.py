@@ -17,8 +17,58 @@ for item in cursor:
 special_charcters = "(''!@#$%^&*()_=+[]{\|;:/.,<>~`?}{)"
 
 
-# Tkinter
+# Background Checks
+def name_has_number(input_string):
+            return any(char.isdigit() for char in input_string)
+def name_has_special_char(input_string):
+            char_check = True
+            for char in input_string:
+                if char in special_charcters:
+                    char_check = False
+            return char_check
+def password_char_count(input_string):
+            char_length = 0
+            upper_count = 0
+            special_char_count = 0
+            number_count = 0
+            space_count = 0
+
+            for char in input_string:
+                char_length += 1
+                if char.isupper():
+                    upper_count += 1
+                if char in special_charcters:
+                    special_char_count += 1
+                if char.isdigit():
+                    number_count += 1
+                if char == " ":
+                    space_count = 1
+
+
+            if space_count ==  1:
+                return False
+            elif char_length >= 8 and char_length <= 25 and upper_count >= 1 and special_char_count >= 1 and number_count >= 1: 
+                return True
+            else:
+                return False
+def email_char_check(input_string):   
+            atCount = 0      
+            if '@hotmail.com' in input_string or '@gmail.com' in input_string:
+                if input_string[-1] == "m" and input_string[-2] == "o" and input_string[-3] == 'c':
+                    atCount += 1
+            
+            if atCount == 1: 
+                return True
+            else: 
+                return False
+
 # Test Password BestPassword1234@
+
+def clearFrame(frame):
+    # destroy all widgets from frame
+    for widget in frame.winfo_children():
+        widget.destroy()
+            
 
 class main_loop(tk.Tk):    
     def __init__(self):
@@ -29,15 +79,15 @@ class main_loop(tk.Tk):
         self.geometry("1000x1000")
 
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=3)    
+        self.columnconfigure(1, weight=1)    
         self.columnconfigure(2, weight=1)    
-        self.columnconfigure(3, weight=3)    
+        self.columnconfigure(3, weight=1)    
         self.columnconfigure(4, weight=1)    
 
 
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=10)
+        self.rowconfigure(2, weight=7)
         self.rowconfigure(3, weight=1)
         self.rowconfigure(4, weight=1)
 
@@ -46,6 +96,14 @@ class main_loop(tk.Tk):
 
         frame0.grid(column=2, row=0)
         frame1.grid(column=2, row=1)
+
+        frame2 = ttk.Frame(self)
+        frame2.grid(column=1, row=1)
+        frame3 = ttk.Frame(self)
+        frame3.grid(column=2, row=2)
+
+        user_logged_in = ''
+
 
         ttk.Label(frame0, text="Hello welcome to Quick and Easy Bank", font=("Arial", 40)).grid(sticky= 'n')
         ttk.Label(frame0, text="---------------------------------------------", font=("Arial", 40)).grid()
@@ -57,66 +115,31 @@ class main_loop(tk.Tk):
             login_button = ttk.Button(frame1, text="Login", command = select_account, width=75).grid(sticky= 'n')
             sign_up_button = ttk.Button(frame1, text="Sign Up", command= make_account, width=75).grid(row = 1)
 
-
+        def log_out():
+            self.destroy()
 
         def home_screen(user_logged_in):
-            function_loop = True
-            while(function_loop):
-                sorting_number = 1
-                print("---------------------------------------------")
-                print(f"Account: {user_logged_in}\n")
+            username = user_logged_in
+            clearFrame(frame0)
+            clearFrame(frame1)
 
-                action_list = ['Check Balance', 'Deposit', 'Withdraw', 'Create Account', 'Delete Account', 'Modify Account', 'Switch Accounts', 'Wire Transfer', 'Log out']
-                for action in action_list:
-                    print(f"{sorting_number}: {action}")
-                    print("-------------------------")
-                    sorting_number += 1
+            
+            self.rowconfigure(2, weight=1)
 
-                try:
-                    actions = int(input("\nOk, type in the number that corresponds to the action you would like to do today. "))
-                except ValueError:
-                    actions = 0
+            ttk.Label(frame0, text="Quick and Easy Bank", font=("Arial", 40)).grid(sticky= 'n')
+            ttk.Label(frame0, text="---------------------------------------------", font=("Arial", 40)).grid()
+            ttk.Label(frame3, text = f"Current Account: {user_logged_in}", font=('Arial', 15)).grid(sticky='n')
 
-                if actions == 1:
-                    print("---------------------------------------------")
-                    cursor.execute(f"SELECT * FROM online_banking WHERE account_name = '{user_logged_in}'")
-                    account_info = cursor.fetchone()
-                    print(f"You have {account_info[4]} in your account now.")
-                    if account_info == 'N/A':
-                        print("No activity as of right now.")
-                    else:
-                        print(f"Your latest transaction was a {account_info[5]}")
-                        
-                    cursor.reset()
-                    continue_forward = input("Type anything to move back to the homescreen. ")
-
-                elif actions == 2:
-                    deposit(user_logged_in)
-
-                elif actions == 3:
-                    withdraw(user_logged_in)
-
-                elif actions == 4:
-                    user_logged_in = make_account(user_logged_in)
-
-                elif actions == 5:
-                    delete_account(user_logged_in)
-
-                elif actions == 6:
-                    user_logged_in = modify_account(user_logged_in)
-
-                elif actions == 7:
-                    user_logged_in = switch_accounts(user_logged_in)
-
-                elif actions == 8:
-                    wire_transfer(user_logged_in)
-
-                elif actions == 9:
-                    print("Logged out")
-                    function_loop = False
-
-                else:
-                    print("Please type the number that corresponds to the action you would like to do.")
+            #Functions
+            Check_balance = ttk.Button(frame0, text="Check Balance", command= lambda: check_balance(username), width=25).grid(row = 2, sticky='w')
+            Deposit = ttk.Button(frame0, text="Deposit", command= lambda: deposit(), width=25).grid(row = 3, sticky='w')
+            Withdraw = ttk.Button(frame0, text="Withdraw", command= lambda: withdraw(), width=25).grid(row = 4, sticky='w')
+            Create_Account = ttk.Button(frame0, text="Create Account", command= lambda: make_account(), width=25).grid(row = 5, sticky='w')
+            Delete_Account = ttk.Button(frame0, text="Delete Account", command= lambda: delete_account(), width=25).grid(row = 2, sticky='e')
+            Modify_Account = ttk.Button(frame0, text="Modify Account", command= lambda: modify_account(), width=25).grid(row = 3, sticky='e')
+            Switch_Account = ttk.Button(frame0, text="Switch Account", command= lambda: switch_accounts(), width=25).grid(row = 4, sticky='e')
+            Wire_Transfer = ttk.Button(frame0, text="Wire Transfer", command= lambda: wire_transfer(), width=25).grid(row = 5, sticky='e')
+            Log_Out = ttk.Button(frame0, text="Log Out", command= lambda: log_out(), width=25).grid(sticky='s')
 
         def deposit(username):
 
@@ -221,58 +244,139 @@ class main_loop(tk.Tk):
                 else:
                     print("Please select an account from the list or type home to go back to the home screen.")
 
-        def select_account(logged_user):
+        def select_account():
+            clearFrame(frame1)
+
+            frame2 = ttk.Frame(self)
+            frame2.grid(column=2, row=1)
+
+            frame3 = ttk.Frame(self)
+            frame3.grid(column=2, row=2)
+
+
             account_list = []
             cursor.execute("SELECT idOnline_Banking, account_name FROM online_banking")
             accounts = cursor.fetchall()
-            print("---------------------------------------------")
             for account in accounts:
-                print(f"{account[0]}: {account[1]}")
                 account_list.append(account[1])
-            print("---------------------------------------------")
 
-            z = True
-            password_tries = 3
-            while (z):
-                if password_tries == 0:
-                    print("You have run out of password tries, you will be kicked out now.")
-                    z = False
-                if(z):
-                    account_name = input("Type the name of the account you would like to use: ")
-                
-                    if account_name in account_list:
 
-                        account_password = input("Ok, what is the password for this account? ")
-                        cursor.execute(f"SELECT password FROM online_banking WHERE account_name = '{account_name}'")
-                        password = cursor.fetchone()
-                        cursor.reset()
-                        password = ''.join(password)
+            clearFrame(frame2)
 
-                        if account_password == password:
-                            logged_user = account_name
-                            z = False
-                            return logged_user
+            account_name = tk.StringVar(self)
+            account_password = tk.StringVar(self)
 
-                        else:
-                            password_tries -= 1
-                            print(f"Please make sure you typed in your password correctly, you have {password_tries} left.")
+
+            ttk.Label(frame2, text = "Username: ", font=('Arial', 15)).grid(row = 1, sticky='w')
+            ttk.Label(frame2, text = "Password: ", font=('Arial', 15)).grid(row = 3, sticky='w')
+
+            ttk.Entry(frame2, textvariable = account_name, width=75).grid(row = 1, column = 1, sticky='e')
+            ttk.Entry(frame2, textvariable = account_password, width=75).grid(row = 3, column = 1, sticky='e')
+
+            ttk.Button(frame2, text="Confirm", command= lambda: check_credentials(), width=20).grid(row = 5, sticky='s')
+
+            def check_credentials():
+                if account_name.get() in account_list:
+                    cursor.execute(f"SELECT password FROM online_banking WHERE account_name = '{account_name.get()}'")
+                    password = cursor.fetchone()
+                    cursor.reset()
+                    password = ''.join(password)
+
+                    if account_password.get() == password:
+                        logged_user = account_name.get()
+                        user_logged_in = account_name.get()
+                        clearFrame(frame2)
+                        clearFrame(frame3)
+                        home_screen(user_logged_in)
 
                     else:
-                        print("Please select from the accounts listed above.")
+                        clearFrame(frame3)
+                        ttk.Label(frame3, text = f"Please make sure your username or password is correct.", font=('Arial', 15)).grid(sticky='n')
+
+                else:
+                    clearFrame(frame3)
+                    ttk.Label(frame3, text = f"Please make sure your username or password is correct.", font=('Arial', 15)).grid(sticky='n')
 
         def make_account():
-                username_creation_check = True
-                user_input = tk.StringVar(self)
+                name_input = tk.StringVar(self)
+                password_input = tk.StringVar(self)
+                email_input = tk.StringVar(self)
 
-                frame0.grid_forget
-                frame1.grid_forget
+                clearFrame(frame1)
 
                 frame2 = ttk.Frame(self)
-                frame3 = ttk.Frame(self)
                 frame2.grid(column=2, row=1)
 
                 cursor.reset
+
                 current_usernames = []
+                current_passwords = []
+                current_emails = []
+                
+                def name_check(account_name):
+                    clearFrame(frame2)
+                    if name_has_number(account_name) == False and name_has_special_char(account_name) == True and account_name not in current_usernames:
+                        cursor.reset
+                        taken_passwords = ("SELECT password FROM online_banking")
+                        cursor.execute(taken_passwords)
+                        for password in cursor:
+                            current_passwords.append(password[0])
+
+                        ttk.Label(frame2, text = "What do you want the password of your account to be? Make sure it's 8-25 characters long with at least a capital letter, number, and special charcter without any spaces.", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=password_input).grid(sticky='s')
+                        ttk.Button(frame2, text="Confirm", command = lambda: password_check(password_input.get()), width=10).grid()
+
+                    else:
+                        clearFrame(frame2)
+                        ttk.Label(frame2, text = "Please type in a name that doesn't have a special charcter or number in it.", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=name_input).grid(sticky='s')
+                        ttk.Button(frame2, text="Confirm", command = lambda: name_check(name_input.get()), width=10).grid()
+     
+                def password_check(account_password):
+                    clearFrame(frame2)
+                    if password_char_count(account_password) and account_password not in current_passwords:
+                        cursor.reset
+                        taken_emails = ("SELECT account_email FROM online_banking")
+                        cursor.execute(taken_emails)
+                        for email in cursor:
+                            current_emails.append(email[0])
+
+                        ttk.Label(frame2, text = "What do you want the email of your account to be? We only accept hotmails and gmails.", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=email_input).grid(sticky='s')
+                        ttk.Button(frame2, text="Confirm", command = lambda: email_check(email_input.get()), width=10).grid()
+                    
+                    else:
+                        clearFrame(frame2)
+                        ttk.Label(frame2, text = "Please type in a Password. Make sure it has a capital letter, number, and a special charcter in it.", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=password_input).grid(sticky='s')
+                        ttk.Button(frame2, text="Confirm", command = lambda: password_check(password_input.get()), width=10).grid()  
+
+                def email_check(account_email):
+                    clearFrame(frame2)
+                    if email_char_check(account_email) and account_email not in current_emails:
+                        account_name = name_input.get()
+                        account_password = password_input.get()
+
+                        starting_total = 0.0
+                        account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
+                        cursor.execute(account_adding)
+                        connection.commit()
+                        print("okay")
+                        logged_user = account_name
+
+
+                        current_usernames.clear()
+                        current_passwords.clear()
+                        current_emails.clear()
+                        home_screen()
+
+                    else:
+                        clearFrame(frame2)
+                        ttk.Label(frame2, text = "Please make sure the email you're typing in has hotmail.com or gmail.com", font=('Arial', 15)).grid(sticky='n')
+                        ttk.Entry(frame2, textvariable=email_input).grid(sticky='s')
+                        ttk.Button(frame2, text="Confirm", command = lambda: email_check(email_input.get()), width=10).grid() 
+
+
                 taken_names = ("SELECT account_name FROM online_banking")
                 cursor.execute(taken_names)
                 for name in cursor:
@@ -282,59 +386,9 @@ class main_loop(tk.Tk):
                     current_usernames.append(capitalize)
                     current_usernames.append(lowercase)
 
-                ttk.Label(frame2, text = "What do you want the name of your account to be? No numbers or special charcters.", font=('Arial', 30))
-                ttk.Entry(frame2, textvariable=user_input).grid(sticky='s')
-                account_name = user_input.get()
-            
-                if name_has_number(account_name) == False and name_has_special_char(account_name) == True and account_name not in current_usernames:
-                    password_creation_check = True
-
-                    while(password_creation_check):
-                        cursor.reset
-                        current_passwords = []
-                        taken_passwords = ("SELECT password FROM online_banking")
-                        cursor.execute(taken_passwords)
-                        for password in cursor:
-                            current_passwords.append(password[0])
-
-                        account_password = input("Ok, now what do you want your password to be? ")
-
-                        if password_char_count(account_password) and account_password not in current_passwords:
-                            email_creation_check = True
-                            while(email_creation_check):
-                                cursor.reset
-                                current_emails = []
-                                taken_emails = ("SELECT account_email FROM online_banking")
-                                cursor.execute(taken_emails)
-                                for email in cursor:
-                                    current_emails.append(email[0])
-
-                                account_email = input("Ok, what email do you want to use for this account? However, we only accept gmails and hotmails. ")
-
-                                if email_char_check(account_email) and account_email not in current_emails:
-                                    starting_total = 0.0
-                                    account_adding = (f"INSERT INTO online_banking (account_name, password, account_email, total_amount, latest_transaction) VALUE ('{account_name}', '{account_password}', '{account_email}', {starting_total}, 'N/A')")
-                                    cursor.execute(account_adding)
-                                    connection.commit()
-                                    print("okay")
-                                    logged_user = account_name
-
-                                    email_creation_check = False
-                                    password_creation_check = False
-                                    username_creation_check = False
-
-                                    current_usernames.clear()
-                                    current_passwords.clear()
-                                    current_passwords.clear()
-                                else:
-                                    print("Please make sure your email has an @gmail.com or a hotmail.com in it. ")  
-
-                        else:
-                            print("Please type a password that has an upper case letter, a special character, a number, and is between 8-25 characters long.")
-                    
-                else:
-                    print("Please don't include numbers or special charcters in the name. There may also be an account with this name already.")
-
+                ttk.Label(frame2, text = "What do you want the name of your account to be? No numbers or special charcters.", font=('Arial', 15)).grid(sticky='n')
+                ttk.Entry(frame2, textvariable=name_input).grid(sticky='s')
+                ttk.Button(frame2, text="Confirm", command = lambda: name_check(name_input.get()), width=10).grid()
 
         def modify_account(logged_user):
             account_details = []
@@ -590,52 +644,18 @@ class main_loop(tk.Tk):
                 else:
                     print("Please type in withdraw or deposit in the text box")
 
-        # Background Checks
-        def name_has_number(input_string):
-            return any(char.isdigit() for char in input_string)
-        def name_has_special_char(input_string):
-            char_check = True
-            for char in input_string:
-                if char in special_charcters:
-                    char_check = False
-            return char_check
-        def password_char_count(input_string):
-            char_length = 0
-            upper_count = 0
-            special_char_count = 0
-            number_count = 0
-            space_count = 0
-
-            for char in input_string:
-                char_length += 1
-                if char.isupper():
-                    upper_count += 1
-                if char in special_charcters:
-                    special_char_count += 1
-                if char.isdigit():
-                    number_count += 1
-                if char == " ":
-                    space_count = 1
+        def check_balance(logged_user):
+            clearFrame(frame0)
+            clearFrame(frame3)
+            cursor.execute(f"SELECT total_amount FROM online_banking WHERE account_name = '{logged_user}'")
+            balance = cursor.fetchone()
+            ttk.Label(frame0, text = f"Total Balance: {balance[0]}.", font=('Arial', 15)).grid(sticky='n')
+            ttk.Button(frame0, text="Back", command= lambda: home_screen(logged_user), width=25).grid(row = 5, sticky='s')
 
 
-            if space_count ==  1:
-                return False
-            elif char_length >= 8 and char_length <= 25 and upper_count >= 1 and special_char_count >= 1 and number_count >= 1: 
-                return True
-            else:
-                return False
-        def email_char_check(input_string):   
-            atCount = 0      
-            if '@hotmail.com' in input_string or '@gmail.com' in input_string:
-                if input_string[-1] == "m" and input_string[-2] == "o" and input_string[-3] == 'c':
-                    atCount += 1
-            
-            if atCount == 1: 
-                return True
-            else: 
-                return False
 
-        user_logged_in = login_page(logged_in)
+
+        login_page(user_logged_in)
         # home_screen(user_logged_in)
 
         
