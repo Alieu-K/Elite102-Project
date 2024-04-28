@@ -143,9 +143,9 @@ class main_loop(tk.Tk):
             Withdraw = ttk.Button(frame0, text="Withdraw", command= lambda: withdraw(user_logged_in), width=25).grid(row = 4, sticky='w')
             Create_Account = ttk.Button(frame0, text="Create Account", command= lambda: make_account(username), width=25).grid(row = 5, sticky='w')
             Delete_Account = ttk.Button(frame0, text="Delete Account", command= lambda: delete_account(user_logged_in), width=25).grid(row = 2, sticky='e')
-            Modify_Account = ttk.Button(frame0, text="Modify Account", command= lambda: modify_account(), width=25).grid(row = 3, sticky='e')
+            Modify_Account = ttk.Button(frame0, text="Modify Account", command= lambda: modify_account(user_logged_in), width=25).grid(row = 3, sticky='e')
             Switch_Account = ttk.Button(frame0, text="Switch Account", command= lambda: select_account(back_button), width=25).grid(row = 4, sticky='e')
-            Wire_Transfer = ttk.Button(frame0, text="Wire Transfer", command= lambda: wire_transfer(), width=25).grid(row = 5, sticky='e')
+            Wire_Transfer = ttk.Button(frame0, text="Wire Transfer", command= lambda: wire_transfer(user_logged_in), width=25).grid(row = 5, sticky='e')
             Log_Out = ttk.Button(frame0, text="Log Out", command= lambda: log_out(), width=25).grid(sticky='s')
 #
         def deposit(username):
@@ -191,6 +191,8 @@ class main_loop(tk.Tk):
                     clearFrame(frame0)
                     ttk.Label(frame0, text=f"Balance: {current_amount[0]}", font=('Arial', 20)).grid(sticky='n')
                     ttk.Label(frame0, text=f"Please type in a number for the depsoit.", font=('Arial', 15)).grid(sticky='n')
+                    ttk.Entry(frame0, textvariable=deposit_number)
+                    ttk.Button(frame0, text="Confirm", command=lambda: calculate(deposit_number))
 #
         def withdraw(username):
             withdraw_number = tk.DoubleVar(self)
@@ -235,6 +237,8 @@ class main_loop(tk.Tk):
                     clearFrame(frame0)
                     ttk.Label(frame0, text=f"Balance: {current_amount[0]}", font=('Arial', 20)).grid(sticky='n')
                     ttk.Label(frame0, text=f"Please type in a number for the withdrawl.", font=('Arial', 15)).grid(sticky='n')
+                    ttk.Entry(frame0, textvariable=withdraw_amount)
+                    ttk.Button(frame0, text="Confirm", command=lambda: calculate(withdraw_amount))
 
         def delete_account(logged_user):
             clearFrame(frame0)
@@ -438,20 +442,60 @@ class main_loop(tk.Tk):
                 ttk.Button(frame2, text="Confirm", command = lambda: name_check(name_input.get()), width=10).grid()
 
         def modify_account(logged_user):
+            clearFrame(frame0)
+            clearFrame(frame1)
+            clearFrame(frame2)
+            clearFrame(frame3)
+    
             account_details = []
+            modification = False
 
             print_account = f"SELECT * FROM online_banking WHERE account_name = '{logged_user}'"
             cursor.execute(print_account)
             for item in cursor:
-                print("---------------------------------------------")
-                print(f"Name: {item[1]}")
-                print(f"Password: {item[2]}")
-                print(f"Email: {item[3]}")
-                print("---------------------------------------------")
                 account_details.append((item[1], item[2], item[3]))
             
-            modification = input("Type in the field you would like to modify about this account. ")
-            get_modify = True
+            ttk.Label(frame0, text = "Select the field you would like to modify for this account.", font=('Arial', 15)).grid(row = 3)
+
+            option = tk.IntVar(self)
+
+            values = {"Name": 1, 
+                      "Email": 2, 
+                      "Password": 3} 
+            
+            for (text, value) in values.items(): 
+                ttk.Radiobutton(frame0, text = text, variable = option, 
+                    value = value, command= lambda: clearframes(option.get(), logged_user)).grid(ipady=1) 
+
+
+            def clearframes(value, logged_user):
+                if value == 1:
+                    clearFrame(frame0)
+
+                    name_input = tk.StringVar(self)
+
+                    ttk.Label(frame0, text = "What would you like for the name of this account to be?", font=('Arial', 15)).grid(row = 1)
+                    ttk.Entry(frame0, textvariable = name_input, width=75).grid(row = 3 )
+                    ttk.Button(frame0, text="Confirm", command=lambda: check(name_input.get())).grid(row = 5)
+
+                    def check(sentence):
+                        string_count = 0
+                        for char in sentence:
+                            string_count += 1
+
+                        if string_count >= 3 and string_count <= 25 and name_has_number(sentence) == False and name_has_special_char(sentence):
+                            modify = f"UPDATE online_banking SET account_name = '{sentence}' WHERE account_name = '{logged_user}'"
+                            cursor.execute(modify)
+                            connection.commit()
+                            cursor.reset
+                            home_screen(sentence)
+
+                elif value == 2:
+                    pass
+                elif value == 3:
+                    pass
+        
+            get_modify = False
 
             while(get_modify):
                 if modification == "name" or modification == "Name":
@@ -708,7 +752,7 @@ class main_loop(tk.Tk):
         
 
 
-
+# BestPassword1234@
 
 
 if __name__ == "__main__":
